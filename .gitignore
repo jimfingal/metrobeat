@@ -1,0 +1,8 @@
+/node_modules/
+*bower_components*
+*main-built.js
+*.pem
+dist/*
+
+app/load_mongo*
+untracked_data/*

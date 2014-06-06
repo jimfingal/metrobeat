@@ -13,9 +13,18 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
     var colors = [tron_cyan, tron_yellow, tron_orange];
 
     var vehicle_cache = {};
+    var route_cache = {};
 
     var vehicleLatLng = function(vehicle_moment) {
       return L.latLng(vehicle_moment['latitude'], vehicle_moment['longitude']);
+    };
+
+    var popupText = function(vehicle) {
+      var result = "<b>Vehicle " + vehicle["id"] + "</b><br/>";
+      if (_.has(route_cache, vehicle["route_id"])) {
+        result = result + "Route: " + route_cache[vehicle["route_id"]];
+      }
+      return result;
     };
 
     var getMarker = function(latlng, hex) {
@@ -32,6 +41,7 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
     var initializeVehicle = function(vehicle_moment, map) {
       var marker = getMarker(vehicleLatLng(vehicle_moment), colors[_.random(0, 2)]);
       vehicle_cache[vehicle_moment['id']] = marker;
+      marker.bindPopup(popupText(vehicle_moment));
       marker.addTo(map);
     };
 
@@ -41,6 +51,9 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
     };
 
     var initializeMap = function(socket) {
+      $.ajax({url: "/routes"}).done(function(res) {
+        route_cache = res;
+      });
 
       $.ajax({url: "/mapconfig"}).done(function(mapconfig) {
 

@@ -37,6 +37,11 @@ app.get('/mapconfig', function(req, res) {
   res.end(JSON.stringify(config.geo.mapconfig));
 });
 
+app.get('/routes', function(req, res) {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.end(JSON.stringify(metroapi.route_cache));
+});
+
 
 var server = http.createServer(app);
 var serverio = io.listen(server);

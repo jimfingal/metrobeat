@@ -18,4 +18,21 @@ var vehicleUpdate = function(vehicleCallback) {
     });
 };
 
+var route_cache = {};
+
+request({
+        url: "http://api.metro.net/agencies/lametro/routes/",
+        json: true
+    }, function(error, response, body) {
+
+    _.each(body['items'], function(route) {
+        route_cache[route['id']] = route['display_name'];
+        console.log(route);
+    });
+    
+    console.log(route_cache);
+ 
+});
+
 module.exports.vehicleUpdate = vehicleUpdate;
+module.exports.route_cache = route_cache;

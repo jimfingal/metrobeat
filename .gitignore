@@ -6,3 +6,4 @@ dist/*
 
 app/load_mongo*
 untracked_data/*
+newrelic_agent.log

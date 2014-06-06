@@ -10,6 +10,7 @@ var geohelper = require('./geohelper');
 var config = require('./config');
 var metroapi = require('./metroapi');
 
+require('newrelic');
 
 var base_dir = path.join(__dirname, '/../app/');
 console.log(base_dir);

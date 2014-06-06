@@ -41,37 +41,57 @@ app.get('/mapconfig', function(req, res) {
 var server = http.createServer(app);
 var serverio = io.listen(server);
 
-var cache = [];
-
-serverio.sockets.on('connection', function(socket) {
-  _.each(cache, function(vehicle) {
-    serverio.emit('vehicle_update', vehicle);
-  });
-});
 
 server.listen(app.get('port'));
 console.log('listening on port ' + app.get('port'));
 
 
+var INTERVAL = 10;
 
+var update_tracker = {};
+
+var isUpdated = function(vehicle) {
+
+  if (! _.has(update_tracker, vehicle["id"])) {
+    return true;
+  }
+
+  var cached = update_tracker[vehicle["id"]];
+  if (cached['longitude'] !== vehicle['longitude'] ||
+      cached['latitude'] !== vehicle['latitude']) {
+    return true;
+  }
+  return false;
+
+};
 
 var updateVehicles = function() {
   var now = Date.now();
   console.log("refreshing vehicles: " + now);
 
   var vehicleCallback = function(vehicle) {
-    vehicle['snapshot_ts'] = now;
-    mongohelper.insertDocument(config.mongo.UPDATE_COLLECTION, vehicle);
-    serverio.emit('vehicle_update', vehicle);
-    cache.push(vehicle);
+
+    if (isUpdated(vehicle)) {
+      update_tracker[vehicle["id"]] = vehicle;
+      vehicle['snapshot_ts'] = now;
+      mongohelper.insertDocument(config.mongo.UPDATE_COLLECTION, vehicle);
+      serverio.emit('vehicle_update', vehicle);
+      //console.log("Vehicle is updated: " + vehicle['id']);
+    }
   };
 
-  cache.length = 0;
   metroapi.vehicleUpdate(vehicleCallback);
 };
 
 updateVehicles();
-setInterval(updateVehicles, 10 * 1000);
+setInterval(updateVehicles, INTERVAL * 1000);
+
+
+serverio.sockets.on('connection', function(socket) {
+  _.each(_.values(update_tracker), function(vehicle) {
+    serverio.emit('vehicle_update', vehicle);
+  });
+});
 
 
 

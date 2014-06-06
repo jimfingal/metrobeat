@@ -11,9 +11,32 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
     var tron_yellow = "#FFE64D";
 
     var colors = [tron_cyan, tron_yellow, tron_orange];
-
     var vehicle_cache = {};
     var route_cache = {};
+    var code_to_color = {};
+
+
+    var getColor = function(route) {
+      if (code_to_color[route]) {
+        return code_to_color[route];
+      } else {
+        return "#6FC3DF";
+      }
+    };
+
+    var refreshColors = function() {
+
+      var routes = _.keys(route_cache);
+      var total = routes.length;
+
+      var i = 0;
+      _.each(routes, function(route) {
+          i++;
+          var color = tinycolor("hsv " + ((i / total) * 360) + " 100 75").toHexString();
+          code_to_color[route] = color;
+      });
+
+    };
 
     var vehicleLatLng = function(vehicle_moment) {
       return L.latLng(vehicle_moment['latitude'], vehicle_moment['longitude']);
@@ -39,7 +62,7 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
     };
 
     var initializeVehicle = function(vehicle_moment, map) {
-      var marker = getMarker(vehicleLatLng(vehicle_moment), colors[_.random(0, 2)]);
+      var marker = getMarker(vehicleLatLng(vehicle_moment), getColor(vehicle_moment['route_id']));
       vehicle_cache[vehicle_moment['id']] = marker;
       marker.bindPopup(popupText(vehicle_moment));
       marker.addTo(map);
@@ -53,6 +76,7 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
     var initializeMap = function(socket) {
       $.ajax({url: "/routes"}).done(function(res) {
         route_cache = res;
+        refreshColors();
       });
 
       $.ajax({url: "/mapconfig"}).done(function(mapconfig) {

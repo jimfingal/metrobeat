@@ -27,10 +27,10 @@ request({
 
     _.each(body['items'], function(route) {
         route_cache[route['id']] = route['display_name'];
-        console.log(route);
+        //console.log(route);
     });
     
-    console.log(route_cache);
+    //console.log(route_cache);
  
 });
 

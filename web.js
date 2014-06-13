@@ -2,6 +2,7 @@ var express = require('express'),
   http = require('http'),
   path = require('path'),
   request = require('request'),
+  flow = require("asyncflow"),
   _ = require('underscore'),
   io = require('socket.io');
 
@@ -10,7 +11,9 @@ var geohelper = require('./lib/geohelper');
 var config = require('./lib/config');
 var metroapi = require('./lib/metroapi');
 
-require('newrelic');
+if (process.env.NEW_RELIC_APP_NAME) {
+    require('newrelic');
+}
 
 var app = express();
 
@@ -38,11 +41,6 @@ app.get('/routes', function(req, res) {
 
 var server = http.createServer(app);
 var serverio = io.listen(server);
-
-
-server.listen(app.get('port'));
-console.log('listening on port ' + app.get('port'));
-
 
 var INTERVAL = 10;
 
@@ -85,12 +83,30 @@ var updateVehicles = function() {
   metroapi.vehicleUpdate(vehicleCallback);
 };
 
-updateVehicles();
-setInterval(updateVehicles, INTERVAL * 1000);
 
 
-serverio.sockets.on('connection', function(socket) {
-  _.each(_.values(update_tracker), function(vehicle) {
-    serverio.emit('vehicle_update', vehicle);
+
+var initDb = flow.wrap(mongohelper.initDb);
+
+flow(function() {
+
+  console.log("Initializing DB");
+  var done = initDb().wait();
+
+  server.listen(app.get('port'));
+  console.log('listening on port ' + app.get('port'));
+
+  updateVehicles();
+  setInterval(updateVehicles, INTERVAL * 1000);
+
+
+  serverio.sockets.on('connection', function(socket) {
+    _.each(_.values(update_tracker), function(vehicle) {
+      serverio.emit('vehicle_update', vehicle);
+    });
   });
+
 });
+
+
+

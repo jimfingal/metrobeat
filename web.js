@@ -14,14 +14,10 @@ require('newrelic');
 
 var app = express();
 
-app.configure(function() {
-  app.set('port', config.web.PORT);
-  app.set('views', path.join(__dirname, '/views'));
-  app.set('view engine', 'jade');
-  app.use(express.bodyParser());
-  app.use(app.router);
-  app.use(express.static(path.join(__dirname, '/public')));
-});
+app.set('port', config.web.PORT);
+app.set('views', path.join(__dirname, '/views'));
+app.set('view engine', 'jade');
+app.use(express.static(path.join(__dirname, '/public')));
 
 app.get('/', function(req, res) {
   res.render('index', {

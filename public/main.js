@@ -35,7 +35,7 @@ require.config({
 });
 
 
-require(['lib/sockethelper', 'lib/map', 'jquery'],
+require(['lib/sockethelper', 'lib/map', 'jquery', 'bootstrap'],
   function(sockethelper, initializeMap, $) {
 
     var socket = sockethelper.getSocket();

@@ -79,7 +79,11 @@ var updateVehicles = function() {
     if (isUpdated(vehicle)) {
       update_tracker[vehicle["id"]] = vehicle;
       vehicle['snapshot_ts'] = now;
-      mongohelper.insertDocument(config.mongo.UPDATE_COLLECTION, vehicle);
+
+      // If false, must be '' as process.env coerces to string
+      if (process.env.STORE_METRO_DATA) {
+        mongohelper.insertDocument(config.mongo.UPDATE_COLLECTION, vehicle);
+      }
       serverio.emit('vehicle_update', vehicle);
       //console.log("Vehicle is updated: " + vehicle['id']);
     }

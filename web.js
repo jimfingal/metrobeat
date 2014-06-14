@@ -70,6 +70,7 @@ var updateVehicles = function() {
     if (isUpdated(vehicle)) {
       update_tracker[vehicle["id"]] = vehicle;
       vehicle['snapshot_ts'] = now;
+      vehicle['geo'] = [vehicle['longitude'], vehicle['latitude']];
 
       // If false, must be '' as process.env coerces to string
       if (process.env.STORE_METRO_DATA) {

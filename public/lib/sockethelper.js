@@ -14,6 +14,7 @@ define(['socket.io'], function(io) {
 
         socket.on('connect', function() {
          console.log('Socket connected.');
+         console.log(socket);
         });
 
         return socket;

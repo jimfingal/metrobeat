@@ -38,9 +38,34 @@ app.get('/routes', function(req, res) {
   res.end(JSON.stringify(metroapi.route_cache));
 });
 
+app.get('/moments/:start/:end', function(req, res) {
+  console.log(req.params);
+  var cursor = mongohelper.aggregateCursor(
+    'moments',
+    [
+      { $match: { 'snapshot_ts' : { $gt: parseInt(req.params.start), $lt: parseInt(req.params.end) }} }, 
+      { $sort: {'snapshot_ts': 1}},
+      { $project: {'id': 1, 'heading': 1, 'geo': 1, 'snapshot_ts' : 1, '_id': 0}}
+    ], 
+    {'allowDiskUse': true, 
+      cursor: { batchSize: 1000 }
+    });
+
+   cursor.get(function(err, results) {
+      if (err !== null) {
+        console.log("Err: " + err);
+      }
+      console.log(results.length);
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify(results));
+    });
+
+});
+
 
 var server = http.createServer(app);
 var serverio = io.listen(server);
+
 
 var INTERVAL = 10;
 
@@ -86,7 +111,6 @@ var updateVehicles = function() {
 
 
 
-
 var initDb = flow.wrap(mongohelper.initDb);
 
 flow(function() {
@@ -105,6 +129,45 @@ flow(function() {
     _.each(_.values(update_tracker), function(vehicle) {
       serverio.emit('vehicle_update', vehicle);
     });
+
+
+    socket.on('get_moments', function(start, end) {
+
+      console.log("Got request from " + socket.id + " for moments from " + start + " to " + end);
+
+      var cursor = mongohelper.aggregateCursor(
+      'moments',
+      [
+        { $match: { 'snapshot_ts' : { $gt: start, $lt: end }} }, 
+        { $sort: {'snapshot_ts': 1}},
+        { $project: {'id': 1, 'heading': 1, 'geo': 1, 'snapshot_ts' : 1, '_id': 0}}
+      ], 
+      {'allowDiskUse': true, 
+        cursor: { batchSize: 100 }
+      });
+
+      console.log(cursor);
+      var counter = 0;
+
+      var batch = [];
+      var batch_size = 100;
+
+      cursor.on('data', function(data) {
+        batch.push(data);
+        if (batch.length >= batch_size) {
+          socket.emit('data', batch);
+          batch.length = 0;
+        }
+        counter++;
+      });
+
+      cursor.on('end', function() {
+        socket.emit('data', batch);
+        console.log( "Iterated " + counter + " times" );
+      });
+
+    });
+
   });
 
 });

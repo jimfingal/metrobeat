@@ -40,13 +40,6 @@ require(['lib/sockethelper', 'lib/map', 'jquery', 'bootstrap'],
 
     var socket = sockethelper.getSocket();
     initializeMap(socket);
-
-    socket.on('data', function(data) {
-      console.log('Got data: ' + data.length);
-    });
-
-    setTimeout(function() {
-        socket.emit('get_moments', 1402531200000, 1402531300000);
-    }, 1000);
+    
 });
 

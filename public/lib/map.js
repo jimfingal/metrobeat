@@ -73,7 +73,40 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
       marker.setLatLng(vehicleLatLng(vehicle_moment));
     };
 
+
+    var startReplayMode = function(socket) {
+      socket.emit('leaveroom', 'realtime');
+
+      /*
+      setTimeout(function() {
+          socket.emit('get_moments', 1402531200000, 1402531300000);
+      }, 1000);
+      */
+
+    };
+
+    var startRealtimeMode = function(socket, map) {
+      socket.emit('joinroom', 'realtime');
+    };
+
+
     var initializeMap = function(socket) {
+
+
+      var buffer = {};
+
+      var bufferFrom = function(start, end) {
+
+      };
+
+      socket.on('data', function(data) {
+        console.log('Got data: ' + data.length);
+      });
+
+      socket.on('done', function(data) {
+        console.log('My batch is done so I would buffer some more here');
+      });
+
       $.ajax({url: "/routes"}).done(function(res) {
         route_cache = res;
         refreshColors();
@@ -89,9 +122,10 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
 
         L.esri.basemapLayer("Gray").addTo(map);
 
-        //layers_control.addTo(map);
+        startRealtimeMode(socket, map);
 
         socket.on("vehicle_update", function(vehicle_moment) {
+          console.log("Getting original update");
           var id = vehicle_moment['id'];
           if (_.has(vehicle_cache, id)) {
             moveVehicle(vehicle_moment);
@@ -99,6 +133,19 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
             initializeVehicle(vehicle_moment, map);
           }
         });
+
+
+        $('#replay').click(function() {
+          console.log('Replay selected');
+          startReplayMode(socket, map);
+        });
+
+        $('#realtime').click(function() {
+          console.log('Real-time selected');
+          startRealtimeMode(socket, map);
+        });
+
+        //layers_control.addTo(map);
       });
     };
 

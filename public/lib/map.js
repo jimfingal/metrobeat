@@ -77,6 +77,9 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
     var startReplayMode = function(socket) {
       socket.emit('leaveroom', 'realtime');
 
+      console.log("Getting between 1402531200000 and 1402617599999")
+      cacheDataBetweenTS(socket, 1402531200000, 1402617599999);
+
       /*
       setTimeout(function() {
           socket.emit('get_moments', 1402531200000, 1402531300000);
@@ -85,27 +88,82 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
 
     };
 
+    var STEP = 10000000;
+
+    var current_start;
+    var current_end;
+    var current_interim;
+    var lastbatch = false;
+    var total_steps;
+    var current_step;
+    var start_time;
+    var end_time;
+
+    var cacheDataBetweenTS = function(socket, start, end) {
+      current_start = start;
+      current_end = end;
+      current_interim = current_start;
+      lastbatch = false;
+
+      total_steps = (current_end - current_start) / STEP;
+      current_step = 0;
+      start_time = new Date();
+
+      console.log("Will make this many batches of requests: " + total_steps);
+
+      getNextBatch(socket);
+    };
+
+    var getNextBatch = function(socket) {
+      current_step++;
+      current_interim = current_interim + STEP;
+
+      if (current_interim >= current_end) {
+        current_interim = current_end;
+        lastbatch = true;
+        end_time = new Date();
+        console.log("Took: " + end_time.getTime() - start_time.getTime());
+      }
+
+      socket.emit("get_moments", current_start, current_interim);
+
+    };
+
+    var storeData = function(data) {
+        // console.log('Got data: ' + data.length);
+    };
+
+    
+    var getPercent = function() {
+      var pc = (current_step / total_steps) * 100;
+      return pc + "%";
+    };
+
+    var setupReplaySettings = function(socket) {
+
+      socket.on('data', function(data) {
+        storeData(data);
+      });
+
+      socket.on('done', function(data) {
+        // console.log('My batch is done so I would buffer some more here');
+        console.log(getPercent());
+        if (!lastbatch) {
+          getNextBatch(socket);
+        }
+      });
+
+    };
+
     var startRealtimeMode = function(socket, map) {
       socket.emit('joinroom', 'realtime');
     };
 
 
+
     var initializeMap = function(socket) {
 
-
-      var buffer = {};
-
-      var bufferFrom = function(start, end) {
-
-      };
-
-      socket.on('data', function(data) {
-        console.log('Got data: ' + data.length);
-      });
-
-      socket.on('done', function(data) {
-        console.log('My batch is done so I would buffer some more here');
-      });
+      setupReplaySettings(socket);
 
       $.ajax({url: "/routes"}).done(function(res) {
         route_cache = res;
@@ -125,7 +183,6 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
         startRealtimeMode(socket, map);
 
         socket.on("vehicle_update", function(vehicle_moment) {
-          console.log("Getting original update");
           var id = vehicle_moment['id'];
           if (_.has(vehicle_cache, id)) {
             moveVehicle(vehicle_moment);
@@ -133,7 +190,6 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
             initializeVehicle(vehicle_moment, map);
           }
         });
-
 
         $('#replay').click(function() {
           console.log('Replay selected');

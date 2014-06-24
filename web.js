@@ -39,17 +39,19 @@ app.get('/routes', function(req, res) {
 });
 
 app.get('/moments/:start/:end', function(req, res) {
+  
   console.log(req.params);
+
   var cursor = mongohelper.aggregateCursor(
-                                           'moments',
-                                           [
-                                           { $match: { 'snapshot_ts' : { $gt: parseInt(req.params.start), $lt: parseInt(req.params.end) }} }, 
-                                           { $sort: {'snapshot_ts': 1}},
-                                           { $project: {'id': 1, 'heading': 1, 'geo': 1, 'snapshot_ts' : 1, '_id': 0}}
-                                           ], 
-                                           {'allowDiskUse': true, 
-                                           cursor: { batchSize: 1000 }
-                                         });
+     'moments',
+     [
+     { $match: { 'snapshot_ts' : { $gt: parseInt(req.params.start), $lt: parseInt(req.params.end) }} }, 
+     { $sort: {'snapshot_ts': 1}},
+     { $project: {'id': 1, 'heading': 1, 'geo': 1, 'snapshot_ts' : 1, '_id': 0}}
+     ], 
+     {'allowDiskUse': true, 
+     cursor: { batchSize: 1000 }
+   });
 
   cursor.get(function(err, results) {
     if (err !== null) {
@@ -154,13 +156,13 @@ flow(function() {
          { $project: {'id': 1, 'heading': 1, 'geo': 1, 'snapshot_ts' : 1, '_id': 0}}
          ], 
          {'allowDiskUse': true, 
-         cursor: { batchSize: 100 }
+         cursor: { batchSize: 1000 }
        });
 
       var counter = 0;
 
       var batch = [];
-      var batch_size = 100;
+      var batch_size = 1000;
 
       cursor.on('data', function(data) {
         batch.push(data);

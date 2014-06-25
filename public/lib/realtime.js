@@ -3,6 +3,8 @@ define(['jquery', 'leaflet', 'underscore', 'lib/routecolors', 'lib/routes'],
 
     var vehicle_cache = {};
 
+    var cached_map;
+
     var vehicleLatLng = function(vehicle_moment) {
       return L.latLng(vehicle_moment['latitude'], vehicle_moment['longitude']);
     };
@@ -36,7 +38,8 @@ define(['jquery', 'leaflet', 'underscore', 'lib/routecolors', 'lib/routes'],
                         Colors.getRouteColor(vehicle_moment['route_id']));
       vehicle_cache[vehicle_moment['id']] = marker;
       marker.bindPopup(popupText(vehicle_moment));
-      marker.addTo(map);
+      //marker.addTo(map);
+      map.addLayer(marker);
     };
 
     var moveVehicle = function(vehicle_moment) {
@@ -47,8 +50,10 @@ define(['jquery', 'leaflet', 'underscore', 'lib/routecolors', 'lib/routes'],
 
     var init = function(socket, map) {
 
+        cached_map = map;
+
         socket.emit("refresh_cache");
-        
+
         socket.on("vehicle_update", function(vehicle_moment) {
             var id = vehicle_moment['id'];
             if (_.has(vehicle_cache, id)) {
@@ -62,10 +67,16 @@ define(['jquery', 'leaflet', 'underscore', 'lib/routecolors', 'lib/routes'],
 
     var stop = function(socket) {
         socket.emit('leaveroom', 'realtime');
+        _.each(_.values(vehicle_cache), function(marker) {
+            cached_map.removeLayer(marker);
+        });
     };
 
     var start = function(socket) {
         socket.emit('joinroom', 'realtime');
+        _.each(_.values(vehicle_cache), function(marker) {
+            marker.addTo(cached_map);
+        });
     };
 
     var Realtime = {};

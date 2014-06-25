@@ -21,14 +21,14 @@ define(['jquery', 'leaflet', 'underscore', 'lib/replay', 'lib/realtime',
 
           $('#replay').click(function() {
             console.log('Replay selected');
-            Replay.stop(socket);
-            Realtime.start(socket);
+            Realtime.stop(socket);
+            Replay.start(socket);
           });
 
           $('#realtime').click(function() {
             console.log('Real-time selected');
-            Realtime.stop(socket);
-            Replay.start(socket);
+            Replay.stop(socket);
+            Realtime.start(socket);
           });
 
         });

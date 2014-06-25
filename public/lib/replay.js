@@ -1,4 +1,4 @@
-define(['jquery', 'underscore'], function($, _) {
+define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation) {
 
     var STEP = 10000000;
 

@@ -1,6 +1,5 @@
 define(['jquery', 'underscore'], function($, _) {
 
-
     var STEP = 10000000;
 
     var current_start;

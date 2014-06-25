@@ -27,6 +27,14 @@ html, body, #map {
     top: 10px;
 }
 
+#leftmenu {
+    position: absolute;
+    z-index: 10;
+    left: 10px;
+    bottom: 40px;
+    display: none;
+}
+
 .dropdown-menu {
     z-index:10;
     position:relative;

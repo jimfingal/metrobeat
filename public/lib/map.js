@@ -1,6 +1,6 @@
-define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'lib/replay',
+define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'lib/replay', 'lib/replayanimation',
           'esri-leaflet', 'jquery-ui', 'bootstrap'],
-          function($, L, _, tinycolor, Replay) {
+          function($, L, _, tinycolor, Replay, Animation) {
 
     var marker_layers = {};
     var cluster_layer = new L.LayerGroup();
@@ -76,14 +76,17 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'lib/replay',
 
     var startReplayMode = function(socket) {
       socket.emit('leaveroom', 'realtime');
+      $('#leftmenu').show();
 
       console.log("Getting between 1402531200000 and 1402617599999");
       Replay.cacheDataBetweenTS(socket, 1402531200000, 1402617599999);
+      Animation.initializeAnimation(1402531200000, 1402617599999);
 
     };
 
     var startRealtimeMode = function(socket, map) {
       socket.emit('joinroom', 'realtime');
+      $('#leftmenu').hide();
     };
 
 
@@ -96,7 +99,9 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'lib/replay',
         route_cache = res;
         refreshColors();
 
-        $.ajax({url: "/mapconfig"}).done(function(mapconfig) {
+      });
+
+       $.ajax({url: "/mapconfig"}).done(function(mapconfig) {
 
           var point = [mapconfig['center']['latitude'], mapconfig['center']['longitude']];
 
@@ -127,10 +132,18 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'lib/replay',
             startRealtimeMode(socket, map);
           });
 
+          $('#start').click(function() {
+            console.log('Start Animation selected');
+            Animation.startAnimation();
+          });
+
+          $('#stop').click(function() {
+            console.log('Start Animation selected');
+            Animation.stopAnimation();
+          });
+
           //layers_control.addTo(map);
         });
-        
-      });
     };
 
     return initializeMap;

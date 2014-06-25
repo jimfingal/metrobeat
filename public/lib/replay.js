@@ -93,9 +93,40 @@ define(['jquery', 'underscore'], function($, _) {
 
     };
 
+    var init = function(socket, map) {
+
+        setupReplaySettings(socket);
+
+        $('#start').click(function() {
+            console.log('Start Animation selected');
+            Animation.startAnimation();
+        });
+
+        $('#stop').click(function() {
+            console.log('Start Animation selected');
+            Animation.stopAnimation();
+        });
+
+        console.log("Getting between 1402531200000 and 1402617599999");
+        cacheDataBetweenTS(socket, 1402531200000, 1402617599999);
+
+    };
+
+
+    var start = function(socket) {
+      $('#leftmenu').show();
+      Animation.initializeAnimation(1402531200000, 1402617599999);
+
+    };
+
+    var stop = function(socket) {
+      $('#leftmenu').hide();
+    };
+
     var Replay = {};
-    Replay.cacheDataBetweenTS = cacheDataBetweenTS;
-    Replay.setupReplaySettings = setupReplaySettings;
+    Replay.init = init;
+    Replay.start = start;
+    Replay.stop = stop;
 
     return Replay;
 

@@ -112,6 +112,7 @@ return false;
 };
 
 var updateVehicles = function() {
+
   var now = Date.now();
   console.log("refreshing vehicles: " + now);
 
@@ -149,6 +150,11 @@ flow(function() {
   updateVehicles();
   setInterval(updateVehicles, INTERVAL * 1000);
 
+  serverio.sockets.on('refresh_cache', function(socket) {
+    _.each(_.values(update_tracker), function(vehicle) {
+      serverio.emit('vehicle_update', vehicle);
+    });
+  };
 
   serverio.sockets.on('connection', function(socket) {
 
@@ -162,10 +168,10 @@ flow(function() {
       console.log("Socket: " + socket.id + " Leaving room. Now in: " + socket.rooms);
     });
 
-    _.each(_.values(update_tracker), function(vehicle) {
-      serverio.emit('vehicle_update', vehicle);
+    socket.on("leaveroom", function(room) {
+      socket.leave(room);
+      console.log("Socket: " + socket.id + " Leaving room. Now in: " + socket.rooms);
     });
-
 
     socket.on('get_moments', function(start, end) {
 

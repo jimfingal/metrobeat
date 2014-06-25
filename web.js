@@ -6,6 +6,9 @@ flow = require("asyncflow"),
 _ = require('underscore'),
 io = require('socket.io');
 
+var compression = require('compression');
+
+
 var mongohelper = require('./lib/mongohelper');
 var geohelper = require('./lib/geohelper');
 var config = require('./lib/config');
@@ -20,6 +23,7 @@ var app = express();
 app.set('port', config.web.PORT);
 app.set('views', path.join(__dirname, '/views'));
 app.set('view engine', 'jade');
+app.use(compression());
 app.use(express.static(path.join(__dirname, '/public')));
 
 app.get('/', function(req, res) {
@@ -53,14 +57,33 @@ app.get('/moments/:start/:end', function(req, res) {
      cursor: { batchSize: 1000 }
    });
 
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+
+  var first = true;
+  res.write('[');
+  cursor.on('data', function(data) {
+    if (first) {
+      first = false;
+    } else {
+      res.write(',');
+    }
+    res.write(JSON.stringify(data));
+  });
+
+  cursor.on('end', function() {
+    res.write(']');
+    res.end();
+  });
+
+  /*
   cursor.get(function(err, results) {
     if (err !== null) {
       console.log("Err: " + err);
     }
     console.log(results.length);
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.end(JSON.stringify(results));
   });
+  */
 
 });
 
@@ -124,7 +147,7 @@ flow(function() {
   console.log('listening on port ' + app.get('port'));
 
   updateVehicles();
-  setInterval(updateVehicles, INTERVAL * 1000);
+  //setInterval(updateVehicles, INTERVAL * 1000);
 
 
   serverio.sockets.on('connection', function(socket) {
@@ -152,8 +175,8 @@ flow(function() {
          'moments',
          [
          { $match: { 'snapshot_ts' : { $gt: start, $lt: end }} }, 
-         { $sort: {'snapshot_ts': 1}},
-         { $project: {'id': 1, 'heading': 1, 'geo': 1, 'snapshot_ts' : 1, '_id': 0}}
+         //{ $sort: {'snapshot_ts': 1}},
+         { $project: {'r': "$id", 'g': "$geo", 't' : "$snapshot_ts", '_id': 0}}
          ], 
          {'allowDiskUse': true, 
          cursor: { batchSize: 1000 }
@@ -165,6 +188,7 @@ flow(function() {
       var batch_size = 1000;
 
       cursor.on('data', function(data) {
+        data.r = parseInt(data.r);
         batch.push(data);
         if (batch.length >= batch_size) {
           socket.emit('data', batch);

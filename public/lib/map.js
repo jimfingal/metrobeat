@@ -77,7 +77,7 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
     var startReplayMode = function(socket) {
       socket.emit('leaveroom', 'realtime');
 
-      console.log("Getting between 1402531200000 and 1402617599999")
+      console.log("Getting between 1402531200000 and 1402617599999");
       cacheDataBetweenTS(socket, 1402531200000, 1402617599999);
 
       /*
@@ -99,6 +99,8 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
     var start_time;
     var end_time;
 
+    var cache = {};
+
     var cacheDataBetweenTS = function(socket, start, end) {
       current_start = start;
       current_end = end;
@@ -115,6 +117,7 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
     };
 
     var getNextBatch = function(socket) {
+
       current_step++;
       current_interim = current_interim + STEP;
 
@@ -126,14 +129,27 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
       }
 
       socket.emit("get_moments", current_start, current_interim);
+      
+      /*
+      $.getJSON("/moments/" + current_start + "/" + current_interim, function(data) {
+          storeData(data);
+          console.log(getPercent());
+          getNextBatch(socket);
+      });
+      */
 
     };
 
     var storeData = function(data) {
-        // console.log('Got data: ' + data.length);
+        //console.log('Got data: ' + data.length);
+        _.each(data, function(moment) {
+          if (! _.has(cache, moment.t)) {
+            cache[moment.t] = [];
+          }
+          cache[moment.t].push(_.omit(moment, 't'));
+        });
     };
 
-    
     var getPercent = function() {
       var pc = (current_step / total_steps) * 100;
       return pc + "%";
@@ -151,6 +167,8 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
         if (!lastbatch) {
           getNextBatch(socket);
         }
+
+        //console.log(cache);
       });
 
     };

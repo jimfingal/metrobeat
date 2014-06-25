@@ -65,6 +65,13 @@ define(['leaflet', 'underscore', 'lib/routecolors', 'lib/routes'],
             map.removeLayer(marker);
         });
       };
+
+      this.removeMarker = function(vehicle_id) {
+        var marker = vehicle_cache[vehicle_id];
+        if (marker) {
+          map.removeLayer(marker);
+        }
+      }
     };
 
 

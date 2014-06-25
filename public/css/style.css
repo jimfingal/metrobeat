@@ -31,7 +31,8 @@ html, body, #map {
     position: absolute;
     z-index: 10;
     left: 10px;
-    bottom: 40px;
+    bottom: 50px;
+    width: 300;
     display: none;
 }
 
@@ -52,5 +53,15 @@ html, body, #map {
     position: absolute;
     z-index: 10;
     left: 10px;
-    bottom: 10px;
+    bottom: 50px;
+    width: 300px;
 }
+
+#timeslider {
+  position: absolute;
+  z-index: 10;
+  top: 40px;
+  width:260px;
+}
+
+

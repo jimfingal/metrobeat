@@ -116,11 +116,13 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
 
         this.start = function(socket) {
           $('#leftmenu').show();
+          $("#timeslider").show();
           animation.initializeAnimation(1402531200000, 1402617599999);
         };
 
         this.stop = function(socket) {
           $('#leftmenu').hide();
+          $("#timeslider").hide();
         };
 
         this.getVehicleData = function(id) {

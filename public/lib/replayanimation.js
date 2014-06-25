@@ -6,7 +6,7 @@ define(['jquery', 'underscore', 'lib/routes', 'moment', 'lib/routecolors'],
 
     var start_time;
     var end_time;
-    var speed_multiplier = 60;
+    //var speed_multiplier = 360;
 
     var animation_start_ts;
 
@@ -17,24 +17,39 @@ define(['jquery', 'underscore', 'lib/routes', 'moment', 'lib/routecolors'],
     var Replay;
 
     var current_frame = {};
-    var last;
-    var start = null;
+    var last = null;
 
     var map;
+
+    var THRESHOLD = 1000000;
 
     var mapToAnimationTime = function(diff) {
         return start_time + diff;
     };
 
+    var speedMultiplier = function() {
+
+        // TODO: easing
+        return ($("#timeslider").slider("value") / 100) * 720;
+    }
+
 
     var Animation = function(marker_helper, Replay) {
+
+        $("#timeslider").slider({
+          value: 50,
+          orientation: "horizontal",
+          animate: true
+        });
+
+        var progress_so_far = 0;
 
         this.initializeVehicles = function() {
             _.each(Replay.vehicles(), function(vehicle_id) {
                 current_frame[vehicle_id] = 0;
             });
 
-            console.log(current_frame);
+            //console.log(current_frame);
         };
 
         this.step = function reStep(timestamp) {
@@ -42,12 +57,22 @@ define(['jquery', 'underscore', 'lib/routes', 'moment', 'lib/routecolors'],
               if (playing) {
 
                   var progress;
-                  if (start === null) {
-                    start = timestamp;
+                  if (last === null) {
+                    last = timestamp;
                   }
-                  progress = (timestamp - start) * speed_multiplier;
 
-                  var animation_time = mapToAnimationTime(progress);
+                  var multiplier = speedMultiplier();
+                  var diff = ((timestamp - last) * multiplier);
+                  //console.log("ts: " + timestamp + ", last: " + last + ", multiplier: " + multiplier + ", diff: " + diff);
+                  //console.log(progress_so_far);
+
+                  progress_so_far = progress_so_far + diff;
+
+                  var animation_time = mapToAnimationTime(progress_so_far);
+                  if (animation_time > end_time) {
+                    animation_time = 0;
+                    progress_so_far = 0;
+                  }
 
                   $("#time").text(moment.utc(animation_time).format('MMMM Do YYYY, h:mm:ss a'));
 
@@ -61,12 +86,15 @@ define(['jquery', 'underscore', 'lib/routes', 'moment', 'lib/routecolors'],
                     if (data && data[frame_num]) {
                         var next_moment = data[frame_num];
                         //console.log(next_moment)
+
                         if (next_moment['t'] < animation_time) {
                             marker_helper.updateVehicle(vehicle, 
                                                         next_moment['r'], 
                                                         next_moment['g'][1],
                                                         next_moment['g'][0]);
                             current_frame[vehicle] = frame_num + 1;
+                        } else if (next_moment['t'] - animation_time > THRESHOLD) {
+                            marker_helper.removeMarker(vehicle);
                         }
                     }
                   });
@@ -91,10 +119,10 @@ define(['jquery', 'underscore', 'lib/routes', 'moment', 'lib/routecolors'],
         this.startAnimation = function(map) {
             if (!playing) {
                 animation_start_ts = Date.now();
-                last = animation_start_ts;
                 start = null;
                 requestID = window.requestAnimationFrame(this.step);
                 playing = true;
+                progress_so_far = 0;
                 this.initializeVehicles();
             }
         };

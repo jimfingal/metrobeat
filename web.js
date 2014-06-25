@@ -147,7 +147,7 @@ flow(function() {
   console.log('listening on port ' + app.get('port'));
 
   updateVehicles();
-  //setInterval(updateVehicles, INTERVAL * 1000);
+  setInterval(updateVehicles, INTERVAL * 1000);
 
 
   serverio.sockets.on('connection', function(socket) {
@@ -174,12 +174,13 @@ flow(function() {
       var cursor = mongohelper.aggregateCursor(
          'moments',
          [
-         { $match: { 'snapshot_ts' : { $gt: start, $lt: end }} }, 
-         //{ $sort: {'snapshot_ts': 1}},
-         { $project: {'r': "$id", 'g': "$geo", 't' : "$snapshot_ts", '_id': 0}}
-         ], 
-         {'allowDiskUse': true, 
-         cursor: { batchSize: 1000 }
+           { $match: { 'snapshot_ts' : { $gt: start, $lt: end }} },
+           { $sort: {'snapshot_ts': 1}},
+           { $project: {'r': "$id", 'g': "$geo", 't' : "$snapshot_ts", '_id': 0}}
+         ],
+         {
+          'allowDiskUse': true,
+          cursor: { batchSize: 1000 }
        });
 
       var counter = 0;

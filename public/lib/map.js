@@ -1,6 +1,6 @@
-define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
+define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'lib/replay',
           'esri-leaflet', 'jquery-ui', 'bootstrap'],
-          function($, L, _, tinycolor, clusterfck) {
+          function($, L, _, tinycolor, Replay) {
 
     var marker_layers = {};
     var cluster_layer = new L.LayerGroup();
@@ -78,98 +78,7 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
       socket.emit('leaveroom', 'realtime');
 
       console.log("Getting between 1402531200000 and 1402617599999");
-      cacheDataBetweenTS(socket, 1402531200000, 1402617599999);
-
-      /*
-      setTimeout(function() {
-          socket.emit('get_moments', 1402531200000, 1402531300000);
-      }, 1000);
-      */
-
-    };
-
-    var STEP = 10000000;
-
-    var current_start;
-    var current_end;
-    var current_interim;
-    var lastbatch = false;
-    var total_steps;
-    var current_step;
-    var start_time;
-    var end_time;
-
-    var cache = {};
-
-    var cacheDataBetweenTS = function(socket, start, end) {
-      current_start = start;
-      current_end = end;
-      current_interim = current_start;
-      lastbatch = false;
-
-      total_steps = (current_end - current_start) / STEP;
-      current_step = 0;
-      start_time = new Date();
-
-      console.log("Will make this many batches of requests: " + total_steps);
-
-      getNextBatch(socket);
-    };
-
-    var getNextBatch = function(socket) {
-
-      current_step++;
-      current_interim = current_interim + STEP;
-
-      if (current_interim >= current_end) {
-        current_interim = current_end;
-        lastbatch = true;
-        end_time = new Date();
-        console.log("Took: " + end_time.getTime() - start_time.getTime());
-      }
-
-      socket.emit("get_moments", current_start, current_interim);
-      
-      /*
-      $.getJSON("/moments/" + current_start + "/" + current_interim, function(data) {
-          storeData(data);
-          console.log(getPercent());
-          getNextBatch(socket);
-      });
-      */
-
-    };
-
-    var storeData = function(data) {
-        //console.log('Got data: ' + data.length);
-        _.each(data, function(moment) {
-          if (! _.has(cache, moment.t)) {
-            cache[moment.t] = [];
-          }
-          cache[moment.t].push(_.omit(moment, 't'));
-        });
-    };
-
-    var getPercent = function() {
-      var pc = (current_step / total_steps) * 100;
-      return pc + "%";
-    };
-
-    var setupReplaySettings = function(socket) {
-
-      socket.on('data', function(data) {
-        storeData(data);
-      });
-
-      socket.on('done', function(data) {
-        // console.log('My batch is done so I would buffer some more here');
-        console.log(getPercent());
-        if (!lastbatch) {
-          getNextBatch(socket);
-        }
-
-        //console.log(cache);
-      });
+      Replay.cacheDataBetweenTS(socket, 1402531200000, 1402617599999);
 
     };
 
@@ -181,45 +90,46 @@ define(['jquery', 'leaflet', 'underscore', 'tinycolor', 'clusterfck',
 
     var initializeMap = function(socket) {
 
-      setupReplaySettings(socket);
+      Replay.setupReplaySettings(socket);
 
       $.ajax({url: "/routes"}).done(function(res) {
         route_cache = res;
         refreshColors();
-      });
 
-      $.ajax({url: "/mapconfig"}).done(function(mapconfig) {
+        $.ajax({url: "/mapconfig"}).done(function(mapconfig) {
 
-        var point = [mapconfig['center']['latitude'], mapconfig['center']['longitude']];
+          var point = [mapconfig['center']['latitude'], mapconfig['center']['longitude']];
 
-        var map = L.map('map', {
-          //'maxZoom': 15
-        }).setView(point, mapconfig['zoom']);
+          var map = L.map('map', {
+            //'maxZoom': 15
+          }).setView(point, mapconfig['zoom']);
 
-        L.esri.basemapLayer("Gray").addTo(map);
+          L.esri.basemapLayer("Gray").addTo(map);
 
-        startRealtimeMode(socket, map);
-
-        socket.on("vehicle_update", function(vehicle_moment) {
-          var id = vehicle_moment['id'];
-          if (_.has(vehicle_cache, id)) {
-            moveVehicle(vehicle_moment);
-          } else {
-            initializeVehicle(vehicle_moment, map);
-          }
-        });
-
-        $('#replay').click(function() {
-          console.log('Replay selected');
-          startReplayMode(socket, map);
-        });
-
-        $('#realtime').click(function() {
-          console.log('Real-time selected');
           startRealtimeMode(socket, map);
-        });
 
-        //layers_control.addTo(map);
+          socket.on("vehicle_update", function(vehicle_moment) {
+            var id = vehicle_moment['id'];
+            if (_.has(vehicle_cache, id)) {
+              moveVehicle(vehicle_moment);
+            } else {
+              initializeVehicle(vehicle_moment, map);
+            }
+          });
+
+          $('#replay').click(function() {
+            console.log('Replay selected');
+            startReplayMode(socket, map);
+          });
+
+          $('#realtime').click(function() {
+            console.log('Real-time selected');
+            startRealtimeMode(socket, map);
+          });
+
+          //layers_control.addTo(map);
+        });
+        
       });
     };
 

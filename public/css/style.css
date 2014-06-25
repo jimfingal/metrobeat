@@ -32,3 +32,10 @@ html, body, #map {
     position:relative;
 
 }
+
+#documents {
+    position: absolute;
+    z-index: 10;
+    left: 10px;
+    bottom: 10px;
+}

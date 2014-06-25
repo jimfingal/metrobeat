@@ -49,9 +49,9 @@ app.get('/moments/:start/:end', function(req, res) {
   var cursor = mongohelper.aggregateCursor(
      'moments',
      [
-     { $match: { 'snapshot_ts' : { $gt: parseInt(req.params.start), $lt: parseInt(req.params.end) }} }, 
-     { $sort: {'snapshot_ts': 1}},
-     { $project: {'id': 1, 'heading': 1, 'geo': 1, 'snapshot_ts' : 1, '_id': 0}}
+       { $match: { 'snapshot_ts' : { $gt: parseInt(req.params.start), $lt: parseInt(req.params.end) }} }, 
+       { $sort: {'snapshot_ts': 1}},
+       { $project: {'v': "$id", 'r': "$route_id", 'g': "$geo", 't' : "$snapshot_ts", '_id': 0}}
      ], 
      {'allowDiskUse': true, 
      cursor: { batchSize: 1000 }
@@ -154,7 +154,7 @@ flow(function() {
     _.each(_.values(update_tracker), function(vehicle) {
       serverio.emit('vehicle_update', vehicle);
     });
-  };
+  });
 
   serverio.sockets.on('connection', function(socket) {
 
@@ -182,7 +182,7 @@ flow(function() {
          [
            { $match: { 'snapshot_ts' : { $gt: start, $lt: end }} },
            { $sort: {'snapshot_ts': 1}},
-           { $project: {'r': "$id", 'g': "$geo", 't' : "$snapshot_ts", '_id': 0}}
+           { $project: {'v': "$id", 'r': "$route_id", 'g': "$geo", 't' : "$snapshot_ts", '_id': 0}}
          ],
          {
           'allowDiskUse': true,

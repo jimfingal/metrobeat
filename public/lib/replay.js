@@ -14,7 +14,7 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
     var documents = 0;
 
     var moments = {};
-    var routes = {};
+    var vehicles = {};
 
     var cacheDataBetweenTS = function(socket, start, end) {
       current_start = start;
@@ -40,7 +40,7 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
         current_interim = current_end;
         lastbatch = true;
         console.log("Took: " + (Date.now() - start_time.getTime));
-        console.log(routes);
+        console.log(vehicles);
         console.log(moments);
       }
 
@@ -63,10 +63,10 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
           if (! _.has(moments, moment.t)) {
             moments[moment.t] = true;
           }
-          if (! _.has(routes, moment.r)) {
-            routes[moment.r] = [];
+          if (! _.has(vehicles, moment.v)) {
+            vehicles[moment.v] = [];
           }
-          routes[moment.r].push(_.omit(moment, 'r'));
+          vehicles[moment.v].push(_.omit(moment, 'v'));
           documents++;
           $('#documents').text(documents);
         });
@@ -103,7 +103,7 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
         });
 
         $('#stop').click(function() {
-            console.log('Start Animation selected');
+            console.log('Stop Animation selected');
             Animation.stopAnimation();
         });
 
@@ -115,7 +115,7 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
 
     var start = function(socket) {
       $('#leftmenu').show();
-      Animation.initializeAnimation(1402531200000, 1402617599999);
+      Animation.initializeAnimation(this, 1402531200000, 1402617599999);
 
     };
 
@@ -123,10 +123,21 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
       $('#leftmenu').hide();
     };
 
+    var getVehicleData = function(id) {
+        return vehicles[id];
+    };
+
+    var vehicles = function() {
+        return _.keys(vehicles);
+    };
+
     var Replay = {};
     Replay.init = init;
     Replay.start = start;
     Replay.stop = stop;
+
+    Replay.getVehicleData = getVehicleData;
+    Replay.vehicles = vehicles;
 
     return Replay;
 

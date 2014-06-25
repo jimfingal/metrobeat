@@ -1,4 +1,4 @@
-define(['jquery', 'underscore', 'lib/replay'], function($, _, Replay) {
+define(['jquery', 'underscore', 'lib/routes'], function($, _, Routes) {
 
     var start_time;
     var end_time;
@@ -11,18 +11,50 @@ define(['jquery', 'underscore', 'lib/replay'], function($, _, Replay) {
 
     var playing = false;
 
-    var initializeAnimation = function(start, end) {
+    var Replay;
+
+    var current_frame = {};
+
+    var mapTopAnimationTime = function(diff) {
+        return start_time + diff;
+    };
+
+    var initializeAnimation = function(Rply, start, end) {
         start_time = start;
         end = end;
         current_time = start;
+        Replay = Rply;
     };
 
     function step(timestamp) {
+
       if (playing) {
+
           var progress = timestamp - animation_start_ts;
+          var animation_time = mapTopAnimationTime(progress);
+
+          _.each(_.pairs(current_frame), function(pair) {
+
+            var data = Replay.getVehicleData(parseInt(pair[0]));
+
+            if (data) {
+                var next_moment = data[pair[1]];
+                //console.log(next_moment)
+            }
+
+          });
+
           console.log(progress);
           window.requestAnimationFrame(step);
       }
+    };
+
+    var initializeVehicles = function() {
+        _.each(Replay.vehicles(), function(vehicle_id) {
+            current_frame[vehicle_id] = 0;
+        });
+
+        console.log(current_frame);
     };
 
     var startAnimation = function() {
@@ -30,6 +62,7 @@ define(['jquery', 'underscore', 'lib/replay'], function($, _, Replay) {
             animation_start_ts = Date.now();
             requestID = window.requestAnimationFrame(step);
             playing = true;
+            initializeVehicles();
         }
     };
 

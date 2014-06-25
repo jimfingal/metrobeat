@@ -17,19 +17,19 @@ define(['jquery', 'leaflet', 'underscore', 'lib/replay', 'lib/realtime', 'lib/ma
           var marker_helper = new MarkerHelper(map);
 
           Realtime.init(socket, marker_helper);
-          Replay.init(socket, marker_helper);
+          replay = new Replay(socket, marker_helper);
 
           Realtime.start(socket);
 
           $('#replay').click(function() {
             console.log('Replay selected');
             Realtime.stop(socket, marker_helper);
-            Replay.start(socket);
+            replay.start(socket);
           });
 
           $('#realtime').click(function() {
             console.log('Real-time selected');
-            Replay.stop(socket);
+            replay.stop(socket);
             Realtime.start(socket);
           });
 

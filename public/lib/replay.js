@@ -16,6 +16,8 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
     var moments = {};
     var vehicles = {};
 
+    var animation;
+
     var cacheDataBetweenTS = function(socket, start, end) {
       current_start = start;
       current_end = end;
@@ -93,51 +95,42 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
 
     };
 
-    var init = function(socket, map) {
+    var Replay = function(socket, marker_helper) {
+
+        animation = new Animation(marker_helper, this);
 
         setupReplaySettings(socket);
 
         $('#start').click(function() {
             console.log('Start Animation selected');
-            Animation.startAnimation(map);
+            animation.startAnimation();
         });
 
         $('#stop').click(function() {
             console.log('Stop Animation selected');
-            Animation.stopAnimation();
+            animation.stopAnimation();
         });
 
         console.log("Getting between 1402531200000 and 1402617599999");
         cacheDataBetweenTS(socket, 1402531200000, 1402617599999);
 
+        this.start = function(socket) {
+          $('#leftmenu').show();
+          animation.initializeAnimation(1402531200000, 1402617599999);
+        };
+
+        this.stop = function(socket) {
+          $('#leftmenu').hide();
+        };
+
+        this.getVehicleData = function(id) {
+            return vehicles[id];
+        };
+
+        this.vehicles = function() {
+            return _.keys(vehicles);
+        };
     };
-
-
-    var start = function(socket) {
-      $('#leftmenu').show();
-      Animation.initializeAnimation(this, 1402531200000, 1402617599999);
-
-    };
-
-    var stop = function(socket) {
-      $('#leftmenu').hide();
-    };
-
-    var getVehicleData = function(id) {
-        return vehicles[id];
-    };
-
-    var vehicles = function() {
-        return _.keys(vehicles);
-    };
-
-    var Replay = {};
-    Replay.init = init;
-    Replay.start = start;
-    Replay.stop = stop;
-
-    Replay.getVehicleData = getVehicleData;
-    Replay.vehicles = vehicles;
 
     return Replay;
 

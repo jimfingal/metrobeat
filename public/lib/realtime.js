@@ -8,9 +8,9 @@ define(['jquery', 'leaflet', 'underscore', 'lib/routecolors', 'lib/routes'],
         socket.emit("refresh_cache");
 
         socket.on("vehicle_update", function(vehicle_moment) {
-            marker_helper.updateVehicle(vehicle_moment['id'], 
-                                        vehicle_moment['route_id'], 
-                                        vehicle_moment['latitude'], 
+            marker_helper.updateVehicle(vehicle_moment['id'],
+                                        vehicle_moment['route_id'],
+                                        vehicle_moment['latitude'],
                                         vehicle_moment['longitude']);
         });
 

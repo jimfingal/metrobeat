@@ -1,6 +1,6 @@
-define(['jquery', 'leaflet', 'underscore', 'lib/replay', 'lib/realtime',
+define(['jquery', 'leaflet', 'underscore', 'lib/replay', 'lib/realtime', 'lib/markerhelper',
           'esri-leaflet', 'jquery-ui', 'bootstrap'],
-          function($, L, _, Replay, Realtime) {
+          function($, L, _, Replay, Realtime, MarkerHelper) {
 
     var initializeMap = function(socket) {
 
@@ -14,14 +14,16 @@ define(['jquery', 'leaflet', 'underscore', 'lib/replay', 'lib/realtime',
 
           L.esri.basemapLayer("Gray").addTo(map);
 
-          Realtime.init(socket, map);
-          Replay.init(socket, map);
+          var marker_helper = new MarkerHelper(map);
+
+          Realtime.init(socket, marker_helper);
+          Replay.init(socket, marker_helper);
 
           Realtime.start(socket);
 
           $('#replay').click(function() {
             console.log('Replay selected');
-            Realtime.stop(socket);
+            Realtime.stop(socket, marker_helper);
             Replay.start(socket);
           });
 

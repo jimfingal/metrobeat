@@ -99,7 +99,7 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
 
         $('#start').click(function() {
             console.log('Start Animation selected');
-            Animation.startAnimation();
+            Animation.startAnimation(map);
         });
 
         $('#stop').click(function() {

@@ -68,7 +68,7 @@ define(['jquery', 'underscore', 'lib/replayanimation'], function($, _, Animation
           }
           vehicles[moment.v].push(_.omit(moment, 'v'));
           documents++;
-          $('#documents').text(documents);
+          //$('#documents').text(documents);
         });
 
     };

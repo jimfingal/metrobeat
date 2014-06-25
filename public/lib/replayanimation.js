@@ -1,8 +1,7 @@
-define(['jquery', 'underscore', 'lib/routes'], function($, _, Routes) {
+define(['jquery', 'underscore', 'lib/routes', 'moment'], function($, _, Routes, moment) {
 
     var start_time;
     var end_time;
-    var current_time;
     var speed_multiplier = 60;
 
     var animation_start_ts;
@@ -24,10 +23,8 @@ define(['jquery', 'underscore', 'lib/routes'], function($, _, Routes) {
     var initializeAnimation = function(Rply, start, end) {
         start_time = start;
         end = end;
-        current_time = start;
         Replay = Rply;
     };
-
 
 
     function step(timestamp) {
@@ -38,11 +35,11 @@ define(['jquery', 'underscore', 'lib/routes'], function($, _, Routes) {
           if (start === null) {
             start = timestamp;
           }
-          progress = timestamp - start;
+          progress = (timestamp - start) * speed_multiplier;
 
-          console.log(progress);
-          
-          var animation_time = mapToAnimationTime(progress * speed_multiplier);
+          var animation_time = mapToAnimationTime(progress);
+
+          $("#time").text(moment.utc(animation_time).format('MMMM Do YYYY, h:mm:ss a'));
 
           _.each(_.pairs(current_frame), function(pair) {
 

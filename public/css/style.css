@@ -47,3 +47,10 @@ html, body, #map {
     left: 10px;
     bottom: 10px;
 }
+
+#time {
+    position: absolute;
+    z-index: 10;
+    left: 10px;
+    bottom: 10px;
+}

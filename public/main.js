@@ -9,7 +9,9 @@ require.config({
       'esri-leaflet': "lib/esri-leaflet",
       'clusterfck': "lib/clusterfck",
       'underscore' : 'bower_components/underscore/underscore',
-      'tinycolor' : 'bower_components/tinycolor/tinycolor'
+      'tinycolor' : 'bower_components/tinycolor/tinycolor',
+      'moment' : 'bower_components/moment/min/moment.min'
+
     },
     'shim': {
         'jquery': {

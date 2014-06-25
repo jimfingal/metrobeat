@@ -52,6 +52,7 @@ define(['jquery', 'leaflet', 'underscore', 'lib/routecolors', 'lib/routes'],
 
         cached_map = map;
 
+        socket.emit('joinroom', 'realtime');
         socket.emit("refresh_cache");
 
         socket.on("vehicle_update", function(vehicle_moment) {
@@ -73,10 +74,14 @@ define(['jquery', 'leaflet', 'underscore', 'lib/routecolors', 'lib/routes'],
     };
 
     var start = function(socket) {
+        
         socket.emit('joinroom', 'realtime');
+        socket.emit('refresh_cache');
+
         _.each(_.values(vehicle_cache), function(marker) {
             marker.addTo(cached_map);
         });
+    
     };
 
     var Realtime = {};

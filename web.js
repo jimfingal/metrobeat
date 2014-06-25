@@ -150,13 +150,14 @@ flow(function() {
   updateVehicles();
   setInterval(updateVehicles, INTERVAL * 1000);
 
-  serverio.sockets.on('refresh_cache', function(socket) {
-    _.each(_.values(update_tracker), function(vehicle) {
-      serverio.emit('vehicle_update', vehicle);
-    });
-  });
-
   serverio.sockets.on('connection', function(socket) {
+
+    socket.on('refresh_cache', function() {
+      console.log("Got request to refresh cache");
+      _.each(_.values(update_tracker), function(vehicle) {
+        socket.emit('vehicle_update', vehicle);
+      });
+    });
 
     socket.on("joinroom", function(room) {
       socket.join(room);

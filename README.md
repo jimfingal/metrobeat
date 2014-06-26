@@ -1,9 +1,11 @@
 Metrobeat
 =============
 
-View real-time LA Metro and Bus positioning, and replay a day's worth of activity. Online at: metrobeat.herokuapp.com
-
 ![Screencast](metrobeat.gif)
+
+View real-time LA Metro and Bus positioning, and replay a day's worth of activity. 
+
+Online at: http://metrobeat.herokuapp.com
 
 
 ## Replay Design notes

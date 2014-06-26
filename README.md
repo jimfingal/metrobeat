@@ -1,25 +1,14 @@
 Metrobeat
 =============
 
-Eventually, something cool.
+View real-time LA Metro and Bus positioning, and replay a day's worth of activity. Online at: metrobeat.herokuapp.com
 
-Right now, just collecting data.
-
-
+![Screencast](metrobeat.gif)
 
 
-## Replay
+## Replay Design notes
 
-Take all of the updates for a day and replay them on the map.
-
-- Front-end inputs
--- Bar that shows time of day
--- Setting for how fast to go through the day
--- Pause animation
-
-Information Needed
-- Historical Set. How stored?
--- Raw: set of "moments" from [real-time API|http://developer.metro.net/introduction/realtime-api-overview/] that look like:
+Raw "moments" from the [real-time API|http://developer.metro.net/introduction/realtime-api-overview/]  look like:
 ```json
 {
         "_id" : ObjectId("5392386c75148d02009828e0"),
@@ -38,20 +27,6 @@ Information Needed
         ]
 }
 ```
--- Roughly corresponds to documentation here: http://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf
--- Ultimately we care about both chunks of time, and individual vehicles. To render:
---- Vehicle ID
---- Snapshot_ts
---- Geo
---- Heading
--- Initially we don't care as much about other fields
-
-General operation, depending on the batch of data, will look something like:
-```javascript
-
-db.moments.aggregate([{ $match: { 'snapshot_ts' : { $gt: 1402531200000, $lt: 1402617599999 }} }, { $sort: {'snapshot_ts': 1}}, { $project : {'id': 1, 'heading': 1, 'geo': 1, 'snapshot_ts' : 1}}], {'allowDiskUse': true, cursor: { batchSize: 0 }} )
-
-```
 
 In a given day, there are almost 400k moments in the system.
 
@@ -60,15 +35,41 @@ In a given day, there are almost 400k moments in the system.
 394507
 ```
 
-- Front-end stuff needed
--- Build a cache of movements
--- Scheduling animations between movements
+To get the documents we want, and squish them down a bit, we can make use of the aggregation pipeline, and node streams to broadcast the data to the client. Ex:
 
+```javascript
+var cursor = mongohelper.aggregateCursor(
+   'moments',
+   [
+     { $match: { 'snapshot_ts' : { $gt: start, $lt: end }} },
+     { $sort: {'snapshot_ts': 1}},
+     { $project: {'v': "$id", 'r': "$route_id", 'g': "$geo", 't' : "$snapshot_ts", '_id': 0}}
+   ],
+   {
+    'allowDiskUse': true,
+    cursor: { batchSize: 1000 }
+ });
 
-Backend
-- Ability to stream a day's worth of data to the client
-- Back and forth -- client ask for particular batch depending on what already have, what care about
-- Visualize what part of batch has been stored
+var counter = 0;
+
+var batch = [];
+var batch_size = 1000;
+
+cursor.on('data', function(data) {
+  data.r = parseInt(data.r);
+  batch.push(data);
+  if (batch.length >= batch_size) {
+    socket.emit('data', batch);
+    batch.length = 0;
+  }
+  counter++;
+});
+
+cursor.on('end', function() {
+  socket.emit('data', batch);
+  socket.emit('done', true);
+});
+```
 
 
 ### TODO
